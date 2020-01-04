@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { UserService } from "./service/user.service";
+import { UserService } from "../shared/services/user-service/user.service";
 import { AccountController } from "./controllers/account/account.controller";
 import { MongooseModule } from "@nestjs/mongoose";
 import { modelInjectors } from "../../database/constants/model-injectors";
@@ -12,9 +12,6 @@ import { LoginController } from "./controllers/login/login.controller";
 @Module({
   imports: [
     SharedModule,
-    MongooseModule.forFeature([
-      { name: modelInjectors.userModel, schema: UserSchema },
-    ]),
   ],
   controllers: [
     AccountController,
@@ -22,7 +19,7 @@ import { LoginController } from "./controllers/login/login.controller";
     RegistrationController,
     UserIconController,
   ],
-  providers: [UserService],
+  providers: [],
 })
 export class UserModule {
 }

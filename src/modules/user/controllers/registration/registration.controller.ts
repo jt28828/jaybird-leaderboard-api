@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Res } from "@nestjs/common";
-import { UserService } from "../../service/user.service";
+import { UserService } from "../../../shared/services/user-service/user.service";
 import { User, UserModel } from "../../../../database/models/user.model";
 import { AuthService } from "../../../shared/services/auth-service/auth.service";
 import { Response } from "express";
@@ -34,13 +34,13 @@ export class RegistrationController extends BaseController {
       return;
     }
 
-    // User created sucessfully. Generate a JWT for them
+    // User created successfully. Generate a JWT for them
     const jwt = await this.authService.generateJwt({
       id: createdUser._id,
       name: createdUser.name,
     });
 
-    this.sendCreatedResponse(response, jwt);
+    this.sendCreatedResponse(response, { jwt });
   }
 
   /** Creates a new user entry from the provided dto to enter into the database */

@@ -14,6 +14,12 @@ export class BaseController {
     BaseController.sendResponse(response, object);
   }
 
+  /** sends a no content response to the requesting user */
+  protected sendNoContentResponse(response: Response) {
+    response.status(204);
+    BaseController.sendResponse(response);
+  }
+
   /** sends a BadRequest response to the requesting user */
   protected sendBadRequestResponse(response: Response, object?: any) {
     response.status(400);

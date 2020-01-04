@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Res } from "@nestjs/common";
-import { UserService } from "../../service/user.service";
+import { UserService } from "../../../shared/services/user-service/user.service";
 import { AuthService } from "../../../shared/services/auth-service/auth.service";
 import { Response } from "express";
 import { User, UserModel } from "../../../../database/models/user.model";
@@ -40,7 +40,8 @@ export class LoginController extends BaseController {
       id: dbUser._id,
       name: dbUser.name,
     });
-    response.send(jwt);
+
+    this.sendOkResponse(response, { jwt });
   }
 
 }

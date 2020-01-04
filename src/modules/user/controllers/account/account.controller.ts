@@ -1,5 +1,5 @@
 import { Controller, Delete, Get, Param, Response, UseGuards } from "@nestjs/common";
-import { UserService } from "../../service/user.service";
+import { UserService } from "../../../shared/services/user-service/user.service";
 import { Response as ExpressResponse } from "express";
 import { AuthGuard } from "../../../../guards/auth-guard/auth.guard";
 

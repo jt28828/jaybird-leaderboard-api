@@ -5,6 +5,7 @@ import { AuthService } from "../shared/services/auth-service/auth.service";
 import { MongooseModule } from "@nestjs/mongoose";
 import { SharedModule } from "../shared/shared.module";
 import { config } from "dotenv";
+import { GuessesModule } from "../guesses/guesses.module";
 
 config();
 const mongoConnectionString = `mongodb://${process.env.DB_HOST}:27017/jjj`;
@@ -20,6 +21,7 @@ const mongoConnectionString = `mongodb://${process.env.DB_HOST}:27017/jjj`;
     }),
     UserModule,
     SharedModule,
+    GuessesModule,
   ],
   controllers: [],
   providers: [],

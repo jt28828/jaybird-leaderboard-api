@@ -7,6 +7,7 @@ export class User {
   name: string;
   password: string;
   paprika: string;
+  guesses: string[];
   createdAt?: Date;
   icon?: StoredFile;
 }
@@ -19,6 +20,7 @@ export const UserSchema = new mongoose.Schema({
   name: String,
   password: String,
   paprika: String,
+  guesses: [String],
   createdAt: Date,
   icon: {
     data: Buffer,
