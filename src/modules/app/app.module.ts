@@ -1,11 +1,11 @@
-import { Inject, Module } from "@nestjs/common";
+import { Module } from "@nestjs/common";
 import { UserModule } from "../user/user.module";
-import { JwtModule } from "@nestjs/jwt";
-import { AuthService } from "../shared/services/auth-service/auth.service";
 import { MongooseModule } from "@nestjs/mongoose";
 import { SharedModule } from "../shared/shared.module";
 import { config } from "dotenv";
 import { GuessesModule } from "../guesses/guesses.module";
+import { SongbirdModule } from "../songbird/songbird.module";
+import { DrinkingGamesModule } from "../drinking-games/drinking-games.module";
 
 config();
 const mongoConnectionString = `mongodb://${process.env.DB_HOST}:27017/jjj`;
@@ -22,6 +22,8 @@ const mongoConnectionString = `mongodb://${process.env.DB_HOST}:27017/jjj`;
     UserModule,
     SharedModule,
     GuessesModule,
+    SongbirdModule,
+    DrinkingGamesModule,
   ],
   controllers: [],
   providers: [],

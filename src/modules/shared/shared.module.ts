@@ -6,6 +6,7 @@ import { UserService } from "./services/user-service/user.service";
 import { MongooseModule } from "@nestjs/mongoose";
 import { modelInjectors } from "../../database/constants/model-injectors";
 import { UserSchema } from "../../database/models/user.model";
+import { DrinkingGamesGateway } from "./gateways/drinking-games.gateway";
 
 config();
 
@@ -29,11 +30,13 @@ config();
   providers: [
     AuthService,
     UserService,
+    DrinkingGamesGateway,
   ],
   exports: [
     AuthService,
     UserService,
     JwtModule,
+    DrinkingGamesGateway,
   ],
 })
 export class SharedModule {
