@@ -3,8 +3,13 @@ import { StoredFile } from "./stored-file.model";
 import * as mongoose from "mongoose";
 
 export class HottestHundred {
-  songName: string;
-  position: number;
+  public songName: string;
+  public position: number;
+
+  constructor(data?: HottestHundred) {
+    this.songName = data?.songName;
+    this.position = data?.position;
+  }
 }
 
 export interface HottestHundredModel extends HottestHundred, Document {

@@ -6,7 +6,9 @@ import { UserService } from "./services/user-service/user.service";
 import { MongooseModule } from "@nestjs/mongoose";
 import { modelInjectors } from "../../database/constants/model-injectors";
 import { UserSchema } from "../../database/models/user.model";
-import { DrinkingGamesGateway } from "./gateways/drinking-games.gateway";
+import { ServerMessagesGateway } from "./gateways/server-messages.gateway";
+import { HottestHundredService } from "./services/hottest-hundred/hottest-hundred.service";
+import { HottestHundredSchema } from "../../database/models/hottestHundred.model";
 
 config();
 
@@ -15,14 +17,19 @@ config();
     MongooseModule.forFeature([
       { name: modelInjectors.userModel, schema: UserSchema },
     ]),
+    MongooseModule.forFeature([
+      { name: modelInjectors.hottestHundredModel, schema: HottestHundredSchema },
+    ]),
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: {
         issuer: "jjj-server",
+        expiresIn: "50 days",
         audience: "jjj-guessers",
       },
       verifyOptions: {
         issuer: "jjj-server",
+        ignoreExpiration: true,
         audience: "jjj-guessers",
       },
     }),
@@ -30,13 +37,15 @@ config();
   providers: [
     AuthService,
     UserService,
-    DrinkingGamesGateway,
+    HottestHundredService,
+    ServerMessagesGateway,
   ],
   exports: [
     AuthService,
     UserService,
+    HottestHundredService,
     JwtModule,
-    DrinkingGamesGateway,
+    ServerMessagesGateway,
   ],
 })
 export class SharedModule {

@@ -3,32 +3,45 @@ import { BaseController } from "../../../../models/base-controller";
 import { UserService } from "../../../shared/services/user-service/user.service";
 import { Request, Response } from "express";
 import { CorrectGuess, UserModel } from "../../../../database/models/user.model";
-import { HottestHundredService } from "../../services/hottest-hundred/hottest-hundred.service";
+import { HottestHundredService } from "../../../shared/services/hottest-hundred/hottest-hundred.service";
 import { HottestHundred } from "../../../../database/models/hottestHundred.model";
 import { SearchUtils } from "../../../../utilities/search-utils";
 import { CorrectGuesser } from "../../../../models/interfaces/correct-guesser";
-import { DrinkingGamesGateway } from "../../../shared/gateways/drinking-games.gateway";
+import { ServerMessagesGateway } from "../../../shared/gateways/server-messages.gateway";
 
 @Controller("twitter-update")
 export class TwitterUpdateController extends BaseController {
   constructor(
     private readonly userService: UserService,
     private readonly hottestHundredService: HottestHundredService,
-    private readonly drinkingGamesGateway: DrinkingGamesGateway,
+    private readonly serverMessagesGateway: ServerMessagesGateway,
   ) {
     super();
   }
 
-  @Post()
-  public async addHottestHundredEntry(@Req() request: Request, @Res() response: Response, @Body() dto: HottestHundred) {
-    const sender = request.headers.from;
+  @Get()
+  public async get10LatestEntries(@Res() response: Response) {
+    let allEntries = await this.hottestHundredService.getAll();
 
-    if (sender !== "songbird") {
-      // Not sent by the correct server
-      this.sendBadRequestResponse(response, "I caught a bird trying to steal my eggs");
-      return;
+    if (allEntries == null) {
+      allEntries = [];
     }
 
+    // Order the entries
+    let orderedEntries = allEntries.sort((a, b) => a.position - b.position);
+
+    if (allEntries.length > 10) {
+      // Trim down to the latest ten
+      orderedEntries = orderedEntries.slice(0, 10);
+    }
+
+    // Return whatever is set without all the extra Mongo fields
+    const formattedResponse = orderedEntries.map(entry => new HottestHundred(entry));
+    this.sendOkResponse(response, formattedResponse);
+  }
+
+  @Post()
+  public async addHottestHundredEntry(@Req() request: Request, @Res() response: Response, @Body() dto: HottestHundred) {
     // Add the new song into the DB
     try {
       await this.hottestHundredService.create(dto);
@@ -44,13 +57,15 @@ export class TwitterUpdateController extends BaseController {
     // After response send continue to update users.
     const correctGuessers = await this.updateUserGuesses(dto);
 
-    // Finally get a new drinking game
+    // Alert subscribers that the board has update
+    this.serverMessagesGateway.notifyDataUpdate();
 
+    // Finally get a new drinking game
     // TODO get drinking game here
     const drinkingGame = "Drink lots";
 
     // This will appear in-app to all connected clients
-    this.drinkingGamesGateway.sendNewDrinkingGame(drinkingGame);
+    this.serverMessagesGateway.sendNewDrinkingGame(drinkingGame);
   }
 
   /**
