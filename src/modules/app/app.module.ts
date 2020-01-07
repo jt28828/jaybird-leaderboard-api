@@ -5,6 +5,7 @@ import { SharedModule } from "../shared/shared.module";
 import { config } from "dotenv";
 import { GuessesModule } from "../guesses/guesses.module";
 import { SongbirdModule } from "../songbird/songbird.module";
+import { LeaderboardModule } from "../leaderboard/leaderboard.module";
 
 config();
 const mongoConnectionString = `mongodb://${process.env.DB_HOST}:27017/jjj`;
@@ -22,6 +23,7 @@ const mongoConnectionString = `mongodb://${process.env.DB_HOST}:27017/jjj`;
     SharedModule,
     GuessesModule,
     SongbirdModule,
+    LeaderboardModule,
   ],
   controllers: [],
   providers: [],

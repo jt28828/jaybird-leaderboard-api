@@ -142,7 +142,7 @@ export class TwitterUpdateController extends BaseController {
   private static getMatchingGuess(user: UserModel, songTitle: string): number {
     let songPosition = -1;
 
-    const matchingSong = SearchUtils.search(user.guesses, songTitle);
+    const matchingSong = SearchUtils.search(user.guesses, songTitle, ["songTitle"]);
 
     if (matchingSong != null) {
       // Get the index of the matching song to determine its position

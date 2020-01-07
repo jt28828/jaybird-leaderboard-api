@@ -29,15 +29,21 @@ export class GuessController extends BaseController {
       return;
     }
 
-    // Retrieve the user's guesses. And if at least 10 haven't been set then return minimum ten.
+    // Retrieve the user's guesses.
     const guesses = dbUser.guesses;
 
-    while (guesses.length < 10) {
-      guesses.push("");
+    // Order the guesses by only retrieve the title
+    const orderedGuesses = guesses
+      .sort((a, b) => a.guessedPosition - b.guessedPosition)
+      .map(guess => guess.songTitle);
+
+    while (orderedGuesses.length < 10) {
+      // if at least 10 haven't been set then return minimum ten.
+      orderedGuesses.push("");
     }
 
-    // Return nothing
-    return this.sendOkResponse(response, { guesses });
+    // Return the guess titles
+    return this.sendOkResponse(response, { guesses: orderedGuesses });
   }
 
   @UseGuards(AuthGuard)
@@ -56,7 +62,7 @@ export class GuessController extends BaseController {
     }
 
     // Update the user's guesses with the provided ones
-    dbUser.guesses = dto.guesses;
+    dbUser.guesses = dto.guesses.map((title, i) => ({ songTitle: title ?? "", guessedPosition: i + 1 }));
     await dbUser.save();
 
     // Return nothing

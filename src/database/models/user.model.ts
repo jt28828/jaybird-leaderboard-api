@@ -2,9 +2,12 @@ import { Document } from "mongoose";
 import { StoredFile } from "./stored-file.model";
 import * as mongoose from "mongoose";
 
-export interface CorrectGuess {
+export interface TopTenGuess {
   songTitle: string;
   guessedPosition: number;
+}
+
+export interface CorrectGuess extends TopTenGuess {
   actualPosition: number;
 }
 
@@ -13,7 +16,7 @@ export class User {
   name: string;
   password: string;
   paprika: string;
-  guesses: string[];
+  guesses: TopTenGuess[];
   correctGuesses: CorrectGuess[];
   score: number;
   createdAt?: Date;
@@ -28,7 +31,10 @@ export const UserSchema = new mongoose.Schema({
   name: String,
   password: String,
   paprika: String,
-  guesses: [String],
+  guesses: [{
+    songTitle: String,
+    guessedPosition: Number,
+  }],
   correctGuesses: [{
     songTitle: String,
     guessedPosition: Number,
