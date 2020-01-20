@@ -1,4 +1,4 @@
-# JJJ Leaderboard Server
+# Jaybird Server
 
 <p align="center">
   <a href="https://www.abc.net.au/triplej/" target="blank"><img src="https://www.abc.net.au/triplej/img/meta/triplej.jpg" width="300" alt="JJJ Logo" /></a>
