@@ -19,6 +19,7 @@ export class TwitterUpdateController extends BaseController {
     super();
   }
 
+
   @Get()
   public async get10LatestEntries(@Res() response: Response) {
     let allEntries = await this.hottestHundredService.getAll();

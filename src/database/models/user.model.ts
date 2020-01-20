@@ -20,7 +20,7 @@ export class User {
   correctGuesses: CorrectGuess[];
   score: number;
   createdAt?: Date;
-  icon?: StoredFile;
+  icon: number;
 }
 
 export interface UserModel extends User, Document {
@@ -42,9 +42,5 @@ export const UserSchema = new mongoose.Schema({
   }],
   createdAt: Date,
   score: Number,
-  icon: {
-    data: Buffer,
-    filename: String,
-    mimeType: String,
-  },
+  icon: Number,
 });

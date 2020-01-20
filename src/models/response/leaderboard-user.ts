@@ -4,6 +4,7 @@ import { SearchUtils } from "../../utilities/search-utils";
 export class LeaderboardUser {
   public name: string;
   public score: number;
+  public icon: number;
   public correctGuesses: CorrectGuess[];
   /** Only includes the guesses not already in the correct guesses list */
   public topTenGuesses: TopTenGuess[];
@@ -11,6 +12,7 @@ export class LeaderboardUser {
   constructor(user: UserModel) {
     this.name = user.name;
     this.score = user.score;
+    this.icon = user.icon;
     this.correctGuesses = user.correctGuesses
       .sort((a, b) => a.actualPosition - b.actualPosition)
       .map(guess => ({

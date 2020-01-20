@@ -27,7 +27,7 @@ export class RegistrationController extends BaseController {
     } catch (e) {
       console.error(e);
       if ((e.message as string).includes(dbErrorCodes.conflict)) {
-        this.sendOkResponse(response, "A user with that username already exists");
+        this.sendBadRequestResponse(response, "A user with that email already exists");
       } else {
         this.sendBadRequestResponse(response, "An unknown error occurred");
       }
@@ -48,6 +48,7 @@ export class RegistrationController extends BaseController {
     const dbEntry = new User();
     dbEntry.username = dto.username;
     dbEntry.name = dto.name;
+    dbEntry.icon = 1;
 
     // Hash their password
     const passwordDetails = this.authService.hashPassword(dto.password);
