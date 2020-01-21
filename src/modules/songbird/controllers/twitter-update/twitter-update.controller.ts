@@ -1,13 +1,17 @@
 import { Body, Controller, Get, Post, Req, Res } from "@nestjs/common";
 import { BaseController } from "../../../../models/base-controller";
 import { UserService } from "../../../shared/services/user-service/user.service";
-import { Request, Response } from "express";
+import { json, Request, Response } from "express";
 import { CorrectGuess, UserModel } from "../../../../database/models/user.model";
 import { HottestHundredService } from "../../../shared/services/hottest-hundred/hottest-hundred.service";
 import { HottestHundred } from "../../../../database/models/hottestHundred.model";
 import { SearchUtils } from "../../../../utilities/search-utils";
 import { CorrectGuesser } from "../../../../models/interfaces/correct-guesser";
 import { ServerMessagesGateway } from "../../../shared/gateways/server-messages.gateway";
+import { DrinkingGameResponseDto } from "../../../../models/response/drinking-games/drinking-game-response";
+import fetch from "node-fetch";
+import { Response as FetchResponse } from "node-fetch";
+import { DrinkingGame } from "../../../../models/DrinkingGame";
 
 @Controller("twitter-update")
 export class TwitterUpdateController extends BaseController {
@@ -18,7 +22,6 @@ export class TwitterUpdateController extends BaseController {
   ) {
     super();
   }
-
 
   @Get()
   public async get10LatestEntries(@Res() response: Response) {
@@ -62,11 +65,40 @@ export class TwitterUpdateController extends BaseController {
     this.serverMessagesGateway.notifyDataUpdate();
 
     // Finally get a new drinking game
-    // TODO get drinking game here
-    const drinkingGame = "Drink lots";
+    let guesserNames: string | null = null;
+    if (correctGuessers.length > 0) {
+      guesserNames = correctGuessers.map(u => u.guesser.name).join(", ");
+      // Remove final comma
+      guesserNames = guesserNames.slice(0, guesserNames.length - 2);
+    }
+
+    const drinkingGame = await this.requestDrinkingGame(guesserNames);
 
     // This will appear in-app to all connected clients
     this.serverMessagesGateway.sendNewDrinkingGame(drinkingGame);
+  }
+
+  private async requestDrinkingGame(winnerNames: string | null): Promise<DrinkingGame | null> {
+    let response: FetchResponse;
+
+    const url = `${process.env.DRINKING_GAME_ADDRESS}:${process.env.DRINKING_GAME_PORT}/${process.env.DRINKING_GAME_ROUTE}`;
+
+    try {
+      response = await fetch(url, { method: "GET" });
+    } catch (e) {
+      // No drinking game available
+      console.error(e);
+      return null;
+    }
+
+    if (response.status > 300) {
+      // Error occurred
+      return null;
+    }
+
+    const gameResponse: DrinkingGameResponseDto = await response.json();
+
+    return new DrinkingGame(gameResponse, winnerNames);
   }
 
   /**

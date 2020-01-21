@@ -1,6 +1,7 @@
 import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Logger } from "@nestjs/common";
 import { Server, Socket } from "socket.io";
+import { DrinkingGame } from "../../../models/DrinkingGame";
 
 @WebSocketGateway(4001)
 export class ServerMessagesGateway implements OnGatewayConnection<Socket>, OnGatewayDisconnect {
@@ -18,7 +19,7 @@ export class ServerMessagesGateway implements OnGatewayConnection<Socket>, OnGat
   }
 
   /** Sends a new drinking game to the user to be displayed on the screen */
-  public sendNewDrinkingGame(game: string) {
+  public sendNewDrinkingGame(game: DrinkingGame) {
     this.server.emit("drinking-game", game);
   }
 
