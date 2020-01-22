@@ -47,6 +47,15 @@ export class TwitterUpdateController extends BaseController {
 
   @Post()
   public async addHottestHundredEntry(@Req() request: Request, @Res() response: Response, @Body() dto: HottestHundredDto) {
+    // First check it's not a double up bug
+    const alreadyAdded = await this.hottestHundredService.getByName(dto.songName);
+
+    if (alreadyAdded != null) {
+      // Return ok anyway in case the server retries on a bad request or something
+      this.sendOkResponse(response, { msg: "Thanks songbird" });
+      return;
+    }
+
     // Calculate the position
     const lastAdded = await this.hottestHundredService.getNewest();
 
