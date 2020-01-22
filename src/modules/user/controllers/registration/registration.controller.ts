@@ -48,7 +48,6 @@ export class RegistrationController extends BaseController {
     const dbEntry = new User();
     dbEntry.username = dto.username;
     dbEntry.name = dto.name;
-    dbEntry.icon = 1;
 
     // Hash their password
     const passwordDetails = this.authService.hashPassword(dto.password);

@@ -24,6 +24,10 @@ export class HottestHundredService {
     return await this.hottestHundredModel.find().exec();
   }
 
+  public async getNewest(): Promise<HottestHundredModel | null> {
+    return await this.hottestHundredModel.findOne().sort({ position: "ascending" }).exec();
+  }
+
   /** Returns a specific entry by song name */
   public async getByName(songName: string): Promise<HottestHundredModel> {
     return await this.hottestHundredModel.findOne({ songName }).exec();

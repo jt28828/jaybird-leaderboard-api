@@ -5,11 +5,13 @@ import { Request, Response } from "express";
 import { UserModel } from "../../../../database/models/user.model";
 import { AuthGuard } from "../../../../guards/auth-guard/auth.guard";
 import { UpdateGuessDto } from "../../../../models/request/update-guess";
+import { ServerMessagesGateway } from "../../../shared/gateways/server-messages.gateway";
 
 @Controller("guess")
 export class GuessController extends BaseController {
   constructor(
     private readonly service: UserService,
+    private readonly serverMessagesGateway: ServerMessagesGateway,
   ) {
     super();
   }
@@ -64,6 +66,8 @@ export class GuessController extends BaseController {
     // Update the user's guesses with the provided ones
     dbUser.guesses = dto.guesses.map((title, i) => ({ songTitle: title ?? "", guessedPosition: i + 1 }));
     await dbUser.save();
+
+    this.serverMessagesGateway.notifyDataUpdate();
 
     // Return nothing
     return this.sendNoContentResponse(response);

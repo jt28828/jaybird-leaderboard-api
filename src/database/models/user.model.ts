@@ -21,6 +21,13 @@ export class User {
   score: number;
   createdAt?: Date;
   icon: number;
+
+  constructor() {
+    this.score = 0;
+    this.correctGuesses = [];
+    this.guesses = [];
+    this.icon = 1;
+  }
 }
 
 export interface UserModel extends User, Document {

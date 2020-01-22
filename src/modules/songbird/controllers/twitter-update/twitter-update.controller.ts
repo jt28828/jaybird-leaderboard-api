@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Req, Res } from "@nestjs/common";
 import { BaseController } from "../../../../models/base-controller";
 import { UserService } from "../../../shared/services/user-service/user.service";
-import { json, Request, Response } from "express";
+import { Request, Response } from "express";
 import { CorrectGuess, UserModel } from "../../../../database/models/user.model";
 import { HottestHundredService } from "../../../shared/services/hottest-hundred/hottest-hundred.service";
 import { HottestHundred } from "../../../../database/models/hottestHundred.model";
@@ -9,9 +9,10 @@ import { SearchUtils } from "../../../../utilities/search-utils";
 import { CorrectGuesser } from "../../../../models/interfaces/correct-guesser";
 import { ServerMessagesGateway } from "../../../shared/gateways/server-messages.gateway";
 import { DrinkingGameResponseDto } from "../../../../models/response/drinking-games/drinking-game-response";
-import fetch from "node-fetch";
-import { Response as FetchResponse } from "node-fetch";
+import fetch, { Response as FetchResponse } from "node-fetch";
 import { DrinkingGame } from "../../../../models/DrinkingGame";
+import { HottestHundredDto } from "../../../../models/response/hottest-hundred";
+import { DrinkingGameType } from "../../../../models/enums/drinking-game-type";
 
 @Controller("twitter-update")
 export class TwitterUpdateController extends BaseController {
@@ -45,10 +46,21 @@ export class TwitterUpdateController extends BaseController {
   }
 
   @Post()
-  public async addHottestHundredEntry(@Req() request: Request, @Res() response: Response, @Body() dto: HottestHundred) {
+  public async addHottestHundredEntry(@Req() request: Request, @Res() response: Response, @Body() dto: HottestHundredDto) {
+    // Calculate the position
+    const lastAdded = await this.hottestHundredService.getNewest();
+
+    const newDbEntry = new HottestHundred();
+    newDbEntry.songName = dto.songName;
+    if (lastAdded == null) {
+      newDbEntry.position = 100;
+    } else {
+      newDbEntry.position = lastAdded.position - 1;
+    }
+
     // Add the new song into the DB
     try {
-      await this.hottestHundredService.create(dto);
+      await this.hottestHundredService.create(newDbEntry);
     } catch (e) {
       console.error(e);
       this.sendBadRequestResponse(response, "Something went wrong");
@@ -56,26 +68,34 @@ export class TwitterUpdateController extends BaseController {
     }
 
     // New song added. Return to the server and update people's scores and correct guesses
-    this.sendOkResponse(response, { msg: "Thanks songbird" });
-
-    // After response send continue to update users.
-    const correctGuessers = await this.updateUserGuesses(dto);
+    const correctGuessers = await this.updateUserGuesses(newDbEntry);
 
     // Alert subscribers that the board has update
     this.serverMessagesGateway.notifyDataUpdate();
 
     // Finally get a new drinking game
     let guesserNames: string | null = null;
-    if (correctGuessers.length > 0) {
-      guesserNames = correctGuessers.map(u => u.guesser.name).join(", ");
+    if (correctGuessers?.length !== 0) {
+      guesserNames = correctGuessers.map(u => `${u.guesser.name}, `).join();
       // Remove final comma
       guesserNames = guesserNames.slice(0, guesserNames.length - 2);
     }
 
-    const drinkingGame = await this.requestDrinkingGame(guesserNames);
+    if (this.shouldShowDrinkingGame(newDbEntry.position, correctGuessers)) {
+      const drinkingGame = await this.requestDrinkingGame(guesserNames);
 
-    // This will appear in-app to all connected clients
-    this.serverMessagesGateway.sendNewDrinkingGame(drinkingGame);
+      if (drinkingGame != null) {
+        // This will appear in-app to all connected clients
+        this.serverMessagesGateway.sendNewDrinkingGame(drinkingGame);
+      }
+    }
+    // Finally send response otherwise GET request to drinks server won't work
+    this.sendOkResponse(response, { msg: "Thanks songbird" });
+  }
+
+  /** Allows drinking games to be shown every 10 songs, every correct guess, and on the number 1 song */
+  private shouldShowDrinkingGame(songPosition: number, guesserNames: ReadonlyArray<CorrectGuesser>) {
+    return (songPosition % 10 === 0 || guesserNames?.length !== 0 || songPosition === 1);
   }
 
   private async requestDrinkingGame(winnerNames: string | null): Promise<DrinkingGame | null> {
@@ -108,12 +128,13 @@ export class TwitterUpdateController extends BaseController {
   private async updateUserGuesses(newSong: HottestHundred): Promise<ReadonlyArray<CorrectGuesser>> {
     const allUsers = await this.userService.getAll();
 
-    let correctGuessers: ReadonlyArray<CorrectGuesser> = null;
+    let correctGuessers: ReadonlyArray<CorrectGuesser> = [];
 
     for (const user of allUsers) {
       const guessedPosition = TwitterUpdateController.getMatchingGuess(user, newSong.songName);
 
       if (guessedPosition !== -1) {
+
         // User guessed the song. Tally their points total. Max number of points is 100
         const guessPoints = TwitterUpdateController.calculateGuessPoints(guessedPosition, newSong.position);
 
@@ -142,7 +163,7 @@ export class TwitterUpdateController extends BaseController {
 
   private static insertSortedGuesser(newGuesser: CorrectGuesser, currentGuessers: ReadonlyArray<CorrectGuesser>): ReadonlyArray<CorrectGuesser> {
     let newArray: ReadonlyArray<CorrectGuesser>;
-    if (currentGuessers == null) {
+    if (currentGuessers.length === 0) {
       // The user is the first correct guesser
       newArray = [newGuesser];
     } else {
@@ -178,11 +199,15 @@ export class TwitterUpdateController extends BaseController {
     const matchingSong = SearchUtils.search(user.guesses, songTitle, ["songTitle"]);
 
     if (matchingSong != null) {
-      // Get the index of the matching song to determine its position
-      const index = user.guesses.indexOf(matchingSong);
+      // First make sure the user doesn't have another guess for that song already
+      if (!user.correctGuesses.find(song => song.songTitle === songTitle)) {
 
-      // Add 1 to the index to retrieve the position the user entered it as.
-      songPosition = index + 1;
+        // Get the index of the matching song to determine its position
+        const index = user.guesses.indexOf(matchingSong);
+
+        // Add 1 to the index to retrieve the position the user entered it as.
+        songPosition = index + 1;
+      }
     }
 
     return songPosition;
