@@ -18,7 +18,7 @@ export class GuessController extends BaseController {
 
   @UseGuards(AuthGuard)
   @Get()
-  public async getUserGuesses(@Req() request: Request, @Res() response: Response) {
+  public async getUserGuesses(@Req() request: Request, @Res() response: Response) {    
     const userId = request.headers.from;
 
     // Get the user from the database
@@ -51,6 +51,15 @@ export class GuessController extends BaseController {
   @UseGuards(AuthGuard)
   @Post()
   public async updateUserGuesses(@Req() request: Request, @Res() response: Response, @Body() dto: UpdateGuessDto) {
+    // Check that the guess entry is still open
+    const lockStatus = process.env.GUESS_LOCK_STATUS;
+
+    if (lockStatus === "locked") {
+      // Entry has been locked
+      this.sendBadRequestResponse(response, "Too Late M8, You're stuck with what you picked");
+      return;
+    }
+    
     const userId = request.headers.from;
 
     // Get the user from the database
