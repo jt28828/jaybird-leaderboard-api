@@ -84,7 +84,7 @@ export class TwitterUpdateController extends BaseController {
 
     // Finally get a new drinking game
     let guesserNames: string | null = null;
-    if (correctGuessers?.length !== 0) {
+    if (correctGuessers != null && correctGuessers.length !== 0) {
       guesserNames = correctGuessers.map(u => `${u.guesser.name}, `).join();
       // Remove final comma
       guesserNames = guesserNames.slice(0, guesserNames.length - 2);
@@ -182,6 +182,8 @@ export class TwitterUpdateController extends BaseController {
         if (newGuesser.guessedPosition <= currentGuesser.guessedPosition) {
           // Create a new array, splicing the new item in the correct spot
           newArray = [...currentGuessers.slice(0, i), newGuesser, ...currentGuessers.slice(i, currentGuessers.length)];
+          console.log(i);
+          console.log(newArray);
         }
       }
     }
